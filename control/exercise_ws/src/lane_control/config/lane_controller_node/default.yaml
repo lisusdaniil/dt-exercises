@@ -1,36 +1,40 @@
 #lane_control/lane_controller_node
 
 ## ADD CONFIGS HERE
-#look_ahead_dist: 0.05            # [m] distance away from robot for pure pursuit to place look-ahead point 
-#seg_collapse_dist: 0.04         # [m] radius of circle to which to collapse segments to a single point
-#seg_ignore_mult: 1.2              # multiplier for look_ahead_dist to ignore segments that are too far away
-#seg_group_dist_x: 0.25          # [m] vertical distance where segments are assumed to belong to the same group
-#seg_group_dist_y: 0.20          # [m] horizontal distance where segments are assumed to belong to the same group
-#correction_from_edge: 0.13      # [m] correction for target point to be in center of lane
-#horizontal_distribution: 0.20   # [m] how much should points be distributed in a group to deem the lane turning
-#max_yellow_white_dist: 0.50     # [m] maximum distance between yellow and white segment to calculate target between them
-#pos_shift_bc_curve: 0.03        # [m] Allow for curvature of road to move horizontal averages to the other side of the car
-                                #     For example, if white lane curves to left, its avg may be to the left of the car
-                                #     but we still want to consider it
-
-#K: 0.2                          # Controller gain
-#v_nom: 0.30                         # [m/s] nominal speed
-#alpha_K: 2.5                    # Slowdown coefficient for alpha
-
-
-# Settings for sim
-look_ahead_dist: 0.30            # [m] distance away from robot for pure pursuit to place look-ahead point 
+look_ahead_dist: 0.3            # [m] distance away from robot for pure pursuit to place look-ahead point 
 seg_collapse_dist: 0.04         # [m] radius of circle to which to collapse segments to a single point
-seg_ignore_mult: 1.15              # multiplier for look_ahead_dist to ignore segments that are too far away
+seg_ignore_mult: 1.3              # multiplier for look_ahead_dist to ignore segments that are too far away
 seg_group_dist_x: 0.25          # [m] vertical distance where segments are assumed to belong to the same group
 seg_group_dist_y: 0.20          # [m] horizontal distance where segments are assumed to belong to the same group
 correction_from_edge: 0.13      # [m] correction for target point to be in center of lane
 horizontal_distribution: 0.20   # [m] how much should points be distributed in a group to deem the lane turning
 max_yellow_white_dist: 0.50     # [m] maximum distance between yellow and white segment to calculate target between them
-pos_shift_bc_curve: 0.03        # [m] Allow for curvature of road to move horizontal averages to the other side of the car
+pos_shift_bc_curve: 0.05        # [m] Allow for curvature of road to move horizontal averages to the other side of the car
                                 #     For example, if white lane curves to left, its avg may be to the left of the car
                                 #     but we still want to consider it
 
-K: 0.32                          # Controller gain
-v_nom: 0.30                         # [m/s] nominal speed
-alpha_K: 4.5                    # Slowdown coefficient for alpha
+K: 0.4                          # Controller gain
+v_nom: 0.60                         # [m/s] nominal speed
+alpha_K: 2.0                    # Slowdown coefficient for alpha
+
+
+# Settings for sim
+#look_ahead_dist: 0.3            # [m] distance away from robot for pure pursuit to place look-ahead point 
+#seg_collapse_dist: 0.02         # [m] radius of circle to which to collapse segments to a single point
+#seg_ignore_mult: 1.3              # multiplier for look_ahead_dist to ignore segments that are too far away
+#seg_group_dist_x: 0.20          # [m] vertical distance where segments are assumed to belong to the same group
+#seg_group_dist_y: 0.20          # [m] horizontal distance where segments are assumed to belong to the same group
+#correction_from_edge: 0.17      # [m] correction for target point to be in center of lane
+#horizontal_distribution: 0.25   # [m] how much should points be distributed in a group to deem the lane turning
+#max_yellow_white_dist: 0.50     # [m] maximum distance between yellow and white segment to calculate target between them
+#pos_shift_bc_curve: 0.05        # [m] Allow for curvature of road to move horizontal averages to the other side of the car
+                                #     For example, if white lane curves to left, its avg may be to the left of the car
+                                #     but we still want to consider it
+
+#K: 0.5                          # Controller gain
+#v_nom: 0.7                     # [m/s] nominal speed
+#alpha_K: 4.0                    # Slowdown coefficient for alpha
+
+#K: 0.6                          # Controller gain
+#v_nom: 0.32                     # [m/s] nominal speed
+#alpha_K: 4.5                    # Slowdown coefficient for alpha

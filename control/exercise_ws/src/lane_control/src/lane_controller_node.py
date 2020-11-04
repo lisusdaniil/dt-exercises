@@ -103,10 +103,9 @@ class LaneControllerNode(DTROS):
             direction = self.direction
 
         #print("hello please work this is a new call")
-        print(direction)
-        print(x_target)
-        print(y_target)
-        print("\n\n\n")
+        #print(direction)
+        #print(x_target)
+        #print(y_target)
 
         self.target_point.x = x_target
         self.target_point.y = y_target
@@ -129,6 +128,7 @@ class LaneControllerNode(DTROS):
         v, omega = self.pp_controller.compute_control_action(self.target_point, self.params['~K'])
         car_control_msg.v = v
         #print(v)
+        #print("\n\n\n")
         car_control_msg.omega = omega
 
         self.publishCmd(car_control_msg)

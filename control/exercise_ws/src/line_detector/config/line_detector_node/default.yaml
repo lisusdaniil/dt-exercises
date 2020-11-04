@@ -9,21 +9,20 @@ colors:
     high_2: [180,255,255]
 
 # Sim Settings
-  WHITE:
-    low: [10,10,50]
-    high: [180,110,255]
-  YELLOW:
-    low: [10,120,100]
-    high: [70,255,255]
-
-
-# IRL Settings
 #  WHITE:
 #    low: [0,0,50]
-#    high: [170,70,255]
+#    high: [180,110,255]
 #  YELLOW:
-#    low: [10,70,100]
-#    high: [60,255,255]
+#    low: [15,110,90]
+#    high: [35,255,245]
+
+# IRL Settings
+  WHITE:
+    low: [0,0,50]
+    high: [180,90,255]
+  YELLOW:
+    low: [15,100,90]
+    high: [35,255,245]
 
 # Old Settings
 #  WHITE:
