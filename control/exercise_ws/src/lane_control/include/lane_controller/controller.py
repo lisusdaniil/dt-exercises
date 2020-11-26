@@ -456,6 +456,7 @@ class PurePursuitLaneController:
                 
         """
         v_nom = self.parameters['~v_nom']
+        v_min = self.parameters['~v_min']
         alpha_K = self.parameters['~alpha_K']
 
         d = max(np.sqrt(target_point.x**2 + target_point.y**2),0.001)
@@ -463,7 +464,7 @@ class PurePursuitLaneController:
         alpha = np.arcsin(sin_alpha)
         
         v = v_nom*np.exp(-alpha_K*abs(alpha))
-        v = max(0.15, v)
+        v = max(v_min, v)
         #v = 0.2
         omega = sin_alpha/K
 
@@ -479,8 +480,8 @@ class PurePursuitLaneController:
         car_pos = {"x": 0.0, "y": 0.0}      # Segments are in pos relative to car which is at (0, 0)
         # Group segments if they are close to each other
         seg_collapse_dist = self.parameters['~seg_collapse_dist']
-        look_ahead_dist = self.parameters['~look_ahead_dist']
-        seg_ignore_mult = self.parameters['~seg_ignore_mult']
+        max_lookahead = self.parameters['~max_lookahead']
+        min_lookahead = self.parameters['~min_lookahead']
 
         # Group white segments
         filtered_seg_list = full_seg_list.copy()
@@ -489,11 +490,11 @@ class PurePursuitLaneController:
             curr_seg = filtered_seg_list[ii]
             
             # Delete segment if it is too far away
-            if self.meas_dis(curr_seg, car_pos) > seg_ignore_mult*look_ahead_dist:
+            if self.meas_dis(curr_seg, car_pos) > max_lookahead:
                 filtered_seg_list.pop(ii)
                 continue
             # Delete segment if it is too close
-            if self.meas_dis(curr_seg, car_pos) < look_ahead_dist/2.5:
+            if self.meas_dis(curr_seg, car_pos) < min_lookahead:
                 filtered_seg_list.pop(ii)
                 continue
             

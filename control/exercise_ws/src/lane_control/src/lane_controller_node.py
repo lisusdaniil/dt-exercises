@@ -33,8 +33,9 @@ class LaneControllerNode(DTROS):
         # Add the node parameters to the parameters dictionary
         self.params = dict()
         self.params['~look_ahead_dist'] = rospy.get_param('~look_ahead_dist', None)
+        self.params['~max_lookahead'] = rospy.get_param('~max_lookahead', None)
+        self.params['~min_lookahead'] = rospy.get_param('~min_lookahead', None) 
         self.params['~seg_collapse_dist'] = rospy.get_param('~seg_collapse_dist', None)
-        self.params['~seg_ignore_mult'] = rospy.get_param('~seg_ignore_mult', None)
         self.params['~seg_group_dist_x'] = rospy.get_param('~seg_group_dist_x', None)
         self.params['~seg_group_dist_y'] = rospy.get_param('~seg_group_dist_y', None)
         self.params['~correction_from_edge'] = rospy.get_param('~correction_from_edge', None)
@@ -43,14 +44,15 @@ class LaneControllerNode(DTROS):
         self.params['~pos_shift_bc_curve'] = rospy.get_param('~pos_shift_bc_curve', None)
         self.params['~K'] = rospy.get_param('~K', None)
         self.params['~v_nom'] = rospy.get_param('~v_nom', None)
+        self.params['~v_min'] = rospy.get_param('~v_min', None)
         self.params['~alpha_K'] = rospy.get_param('~alpha_K', None)
-        
+        self.params['~sample_rate'] = rospy.get_param('~sample_rate', None)
         
         self.pp_controller = PurePursuitLaneController(self.params)
 
         # Initialize variables
         self.target_point = Point()
-        self.last_s = 2
+        self.last_s = 0.2
         self.direction = "unknown"
 
         # Construct publishers
@@ -94,7 +96,7 @@ class LaneControllerNode(DTROS):
                 yellow_seg_list.append(temp_dict)
 
         current_s = rospy.Time.now().to_sec()
-        if current_s - self.last_s > 0.05:
+        if current_s - self.last_s > self.params['~sample_rate']:
             x_target, y_target, direction = self.pp_controller.update_target_point(self.target_point, white_seg_list, yellow_seg_list)
             self.last_s = current_s
         else:
@@ -102,10 +104,9 @@ class LaneControllerNode(DTROS):
             y_target = self.target_point.y
             direction = self.direction
 
-        #print("hello please work this is a new call")
-        #print(direction)
-        #print(x_target)
-        #print(y_target)
+        print(direction)
+        print(x_target)
+        print(y_target)
 
         self.target_point.x = x_target
         self.target_point.y = y_target
@@ -118,7 +119,6 @@ class LaneControllerNode(DTROS):
         Args:
             input_pose_msg (:obj:`LanePose`): Message containing information about the current lane pose.
         """
-        #print(input_pose_msg)
         self.pose_msg = input_pose_msg
 
         car_control_msg = Twist2DStamped()
@@ -127,8 +127,8 @@ class LaneControllerNode(DTROS):
         # TODO This needs to get changed
         v, omega = self.pp_controller.compute_control_action(self.target_point, self.params['~K'])
         car_control_msg.v = v
-        #print(v)
-        #print("\n\n\n")
+        print(v)
+        print("\n\n\n")
         car_control_msg.omega = omega
 
         self.publishCmd(car_control_msg)

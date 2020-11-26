@@ -1,0 +1,132 @@
+#lane_control/lane_controller_node
+
+# THESE PARAMETERS ARE FOR SIM
+# Parameteres for straight
+v_bar_st: 0.6
+k_d_st: -3.5
+k_theta_st: -2.0
+k_der_d_st: -0.6
+k_der_theta_st: -0.04
+k_Id_st: -0.2
+k_Iphi_st: -0.1
+omega_max_st: 1.0
+
+# THESE PARAMETERS ARE FOR SIM
+# Parameters for turns
+v_bar_tr: 0.20
+k_d_tr: -3.5
+k_theta_tr: -8.0
+k_der_d_tr: -0.0
+k_der_theta_tr: -0.01
+k_Id_tr: -0.0
+k_Iphi_tr: 0.0
+omega_max_tr: 5.0
+
+theta_thres: 0.523
+d_thres: 0.2615
+d_offset: -0.00
+
+# THESE PARAMETERS ARE FOR SIM
+# Settings for direction detection (from A1) for sim
+look_ahead_dist: 0.17            # [m] distance away from robot for pure pursuit to place look-ahead point 
+seg_collapse_dist: 0.02         # [m] radius of circle to which to collapse segments to a single point
+max_lookahead: 0.4              # [m] maximum distance to keep track of segments
+min_lookahead: 0.10              # [m] minimum distance to keep track of segments 
+seg_group_dist_x: 0.20          # [m] vertical distance where segments are assumed to belong to the same group
+seg_group_dist_y: 0.20          # [m] horizontal distance where segments are assumed to belong to the same group
+correction_from_edge: 0.17      # [m] correction for target point to be in center of lane
+horizontal_distribution: 0.20   # [m] how much should points be distributed in a group to deem the lane turning
+max_yellow_white_dist: 0.50     # [m] maximum distance between yellow and white segment to calculate target between them
+pos_shift_bc_curve: 0.05        # [m] Allow for curvature of road to move horizontal averages to the other side of the car
+                                #     For example, if white lane curves to left, its avg may be to the left of the car
+                                #     but we still want to consider it
+sample_rate: 0.00               # Sample rate for new commands
+turn_delay: 0.005                # Time to delay updating direction during turns to allow full turns
+
+
+
+################################################# SIM PARAMS ABOVE
+
+# Parameteres for straight
+#v_bar_st: 0.60
+#k_d_st: -5.5
+#k_theta_st: -5.5
+#k_der_d_st: -0.4
+#k_der_theta_st: -0.04
+#k_Id_st: -0.3
+#k_Iphi_st: -0.1
+#omega_max_st: 2.0
+
+# Parameters for turns
+#v_bar_tr: 0.40
+#k_d_tr: -3.5
+#k_theta_tr: -14.0
+#k_der_d_tr: -0.0
+#k_der_theta_tr: -0.05
+#k_Id_tr: -0.0
+#k_Iphi_tr: 0.0
+#omega_max_tr: 4.0
+
+#theta_thres: 0.523
+#d_thres: 0.2615
+#d_offset: -0.06
+
+
+## Settings for real
+#look_ahead_dist: 0.34            # [m] distance away from robot for pure pursuit to place look-ahead point
+#max_lookahead: 0.4              # [m] maximum distance to keep track of segments
+#min_lookahead: 0.1              # [m] minimum distance to keep track of segments 
+#seg_collapse_dist: 0.03          # [m] radius of circle to which to collapse segments to a single point
+#seg_group_dist_x: 0.20           # [m] vertical distance where segments are assumed to belong to the same group
+#seg_group_dist_y: 0.22           # [m] horizontal distance where segments are assumed to belong to the same group
+#correction_from_edge: 0.12       # [m] correction for target point to be in center of lane
+#horizontal_distribution: 0.15    # [m] how much should points be distributed in a group to deem the lane turning
+#max_yellow_white_dist: 0.50      # [m] maximum distance between yellow and white segment to calculate target between them
+#pos_shift_bc_curve: 0.05         # [m] Allow for curvature of road to move horizontal averages to the other side of the car
+#sample_rate: 0.01                # Sample rate for new direction update
+#turn_delay: 0.10                # Time to delay updating direction during turns to allow full turns
+
+
+
+############################################ OTHER
+
+omega_ff: 0
+
+integral_bounds:
+  d:
+    top: 0.3
+    bot: -0.3
+  phi:
+    top: 1.5
+    bot: -1.5
+
+# TODO: lane filter should publish this information
+d_resolution: 0.011
+phi_resolution: 0.051
+
+stop_line_slowdown:
+  start: 0.6
+  end: 0.15
+
+verbose: 0
+
+# ORIGINAL SETTINGS
+#lane_control/lane_controller_node
+#v_bar: 0.19
+#k_d: -6.0
+#k_theta: -5
+#k_Id: -0.3
+#k_Iphi: 0.0
+#theta_thres: 0.523
+#d_thres: 0.2615
+#d_offset: 0.0
+
+#omega_ff: 0
+
+#integral_bounds:
+#  d:
+#    top: 0.3
+#    bot: -0.3
+#  phi:
+#    top: 1.2
+#    bot: -1.2
