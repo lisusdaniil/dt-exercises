@@ -70,8 +70,6 @@ class LaneFilterHistogramKF():
     def predict(self, dt, left_encoder_delta, right_encoder_delta):
         if not self.initialized:
             return
-        #print("r enc delta: " + str(right_encoder_delta))
-        #print("l enc delta: " + str(left_encoder_delta))
         # Load in current state
         T_hat = self.T
         P_hat = self.P_hat
@@ -85,13 +83,6 @@ class LaneFilterHistogramKF():
         v_forward = (v_left + v_right)/2
         omega = (v_right - v_left)/self.wheel_baseline
 
-        #print("d_left: " + str(d_left))
-        #print("d_right: " + str(d_right))
-        #print("v_left: " + str(v_left))
-        #print("v_right: " + str(v_right))
-        #print("v_forward: " + str(v_forward))
-        #print("omega pred: " + str(omega))
-
         # Get noise for velocities
         # Cap encoder delta to be 1 for noise calculations
         if left_encoder_delta < 1.0: left_encoder_delta = 1.0
@@ -99,7 +90,7 @@ class LaneFilterHistogramKF():
         w_enc = 1/self.encoder_resolution
         w_v_l = v_left*sqrt((w_enc/left_encoder_delta)**2)
         w_v_r = v_right*sqrt((w_enc/right_encoder_delta)**2)
-        w_v_f = 10*sqrt(w_v_l**2 + w_v_r**2)
+        w_v_f = 10*sqrt(w_v_l**2 + w_v_r**2)        # Factor these up to allow for slip + uncertainty during turns
         w_ome = 12*sqrt(w_v_l**2 + w_v_r**2)
 
         # Define velocity vector, note we cannot move sideways in body frame so we set that as 0
@@ -136,8 +127,6 @@ class LaneFilterHistogramKF():
         self.T = T_check
         self.P_hat = P_check
         self.belief = self.SE2_to_belief(T_check)
-        #print("pred d" + str(self.SE2_to_belief(T_check)['mean'][0]))
-        #print("pred phi" + str(self.SE2_to_belief(T_check)['mean'][1]))
 
 
     def update(self, segments):
@@ -168,11 +157,11 @@ class LaneFilterHistogramKF():
             if len(counts) > 1:
                 # This checks if the mode likelihood is widespread compared to other likelihoods
                 if np.sort(counts)[-1] > np.sort(counts)[-2]*4 and np.sort(counts)[-1] > 5:
-                    mode_idx = np.argmax(counts)    # Get index of mode likelihood
+                    mode_idx = np.argmax(counts)                # Get index of mode likelihood
                     ml_edit = ml_edit - unique[mode_idx]        # Subtract mode likelihood
                     ml_edit[ml_edit < 0.0] = 0.0                # Clamp likelihood to be >= 0.0
                     if np.sum(ml_edit) != 0.0:
-                        ml_edit = ml_edit / np.sum(ml_edit)         # Renormalize likelihoods
+                        ml_edit = ml_edit / np.sum(ml_edit)     # Renormalize likelihoods
 
             # Now generate discrete d and phi probabilities
             d_vals = np.mgrid[self.d_min:self.d_max:self.delta_d]
@@ -186,7 +175,7 @@ class LaneFilterHistogramKF():
             phi_mean = np.sum(np.multiply(phi_vals, phi_prob))
             phi_var = np.sum(np.multiply(np.multiply(phi_vals, phi_vals), phi_prob)) - phi_mean**2
 
-            # Clamp variance to be at least half the square
+            # Clamp variance to be at least a little noisy
             d_var = max(d_var, self.delta_d/6.0)
             phi_var = max(phi_var, self.delta_phi/6.0)
 
@@ -195,6 +184,7 @@ class LaneFilterHistogramKF():
             Y_k_inv = np.linalg.inv(Y_k)
             Y_check = self.T[0:2, 0:2]              # Get predicted measurement
             
+            # Define innovation for phi measurements
             z_phi = self.so2_decompose(self.SO2_log(Y_k_inv @ Y_check))
             H_1 = np.array([1, 0, 0])
             M_1 = np.array([-1, 0, 0])
@@ -204,22 +194,25 @@ class LaneFilterHistogramKF():
             # Additionally, the "xy" plane moves with the lane so r1 has no actual meaning...
             # Lets try just snapping it back to 0...
             #r1_meas = 0.0
+
             # Alternatively we can keep it as is from wheel encoder
             #r1_meas = T_check[0,2] 
+
             # Alternatively maybe we can try to keep it as our "amount travelled forward" through some math
             # This is also super weird since we are now providing r1 in the body frame instead of the world frame
             # But this might be a more "natural" way to transition the position through lane turns
             r1_meas = (Y_k @ T_check[0:2,2])[0]
 
             y_k = np.expand_dims(np.array([r1_meas, d_mean, 1.0]), axis=1)      # Get measured prediction
-            y_check = np.expand_dims(T_check[0:3, 2], axis=1)                # Get predicted measurement
+            y_check = np.expand_dims(T_check[0:3, 2], axis=1)                   # Get predicted measurement
 
+            # Define innovation for d
             z_r = np.linalg.inv(T_check) @ (y_k - y_check)
             H_2 = np.array([[0, -1, 0], [0, 0, -1]])
             M_2 = np.zeros((2,3))
             M_2[0:2,1:3] = T_check[0:2, 0:2].T
 
-            # Get innovation
+            # Get full innovation
             z = np.zeros((3,1))
             z[0,0] = z_phi
             z[1:3, 0] = z_r[0:2,0]
@@ -240,11 +233,7 @@ class LaneFilterHistogramKF():
             self.T = T_hat
             self.belief = self.SE2_to_belief(T_hat)
 
-            #print("d_mean: " + str(d_mean))
-            #print("phi_mean: " + str(phi_mean))
-
     def getEstimate(self):
-        #print(self.belief)
         return self.belief
 
     def SE2_to_belief(self, SE2_el):
@@ -327,7 +316,6 @@ class LaneFilterHistogramKF():
         theta = self.so2_decompose(so2_el)
         return self.SO2_synthesise(theta)
 
-
     def generate_measurement_likelihood(self, segments):
 
         if len(segments) == 0:
@@ -358,10 +346,6 @@ class LaneFilterHistogramKF():
         measurement_likelihood = measurement_likelihood / \
             np.sum(measurement_likelihood)
         return measurement_likelihood
-
-
-
-
 
     # generate a vote for one segment
     def generateVote(self, segment):

@@ -117,13 +117,12 @@ class LaneFilterNode(DTROS):
         dt = current_time - self.t_last_update
         self.t_last_update = current_time
 
-        # first let's check if we moved at all, if not abort
+        # First let's check if we moved at all, if not abort
         if self.right_encoder_ticks_delta == 0 and self.left_encoder_ticks_delta == 0:
             return
-        #print("\n\n\n")
+        # Also check that we arent pushing unreasonable values to our state estimator
+        # This can happen during initialization on the actual encoders, it spikes to >1000 tics
         if self.right_encoder_ticks_delta < 200 and self.left_encoder_ticks_delta < 200:
-            #print("right tics :" + str(self.right_encoder_ticks_delta))
-            #print("left tics :" + str(self.left_encoder_ticks_delta))
             self.filter.predict(dt, self.left_encoder_ticks_delta, self.right_encoder_ticks_delta)
         self.left_encoder_ticks += self.left_encoder_ticks_delta
         self.right_encoder_ticks += self.right_encoder_ticks_delta

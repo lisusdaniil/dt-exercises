@@ -282,7 +282,7 @@ class LaneControllerNode(DTROS):
                 else:
                     self.direction = 'straight'
         #print(self.dir_list)
-        print(self.direction)
+        #print(self.direction)
 
     def cbObstacleStopLineReading(self,msg):
         """
@@ -396,8 +396,8 @@ class LaneControllerNode(DTROS):
         car_control_msg.header = pose_msg.header
 
         # Add commands to car message
-        print("v: " + str(v))
-        print("omega: " + str(omega))
+        #print("v: " + str(v))
+        #print("omega: " + str(omega))
         car_control_msg.v = v
         car_control_msg.omega = omega
 

@@ -87,15 +87,6 @@ class LaneController:
                 + k_der_d * d_der + k_der_theta * phi_der \
                 + k_Id * self.d_I + k_Iphi * self.phi_I
 
-        #print(k_d * d_err)
-        #print(k_der_d * d_der)
-        #print(k_Id * self.d_I)
-        #print("theta")
-        #print(k_theta * phi_err)
-        #print(k_der_theta * phi_der)
-        #print(k_Iphi * self.phi_I)
-        #print("Omega raw: " + str(omega))
-
         self.prev_d_err = d_err
         self.prev_phi_err = phi_err
 
@@ -129,13 +120,6 @@ class LaneController:
             k_der_theta = self.parameters['~k_der_theta_tr'].value
             k_Id = self.parameters['~k_Id_tr'].value
             k_Iphi = self.parameters['~k_Iphi_tr'].value
-        elif direction == 'unknown':
-            k_d = self.parameters['~k_d_un'].value
-            k_theta = self.parameters['~k_theta_un'].value
-            k_der_d = self.parameters['~k_der_d_un'].value
-            k_der_theta = self.parameters['~k_der_theta_un'].value
-            k_Id = self.parameters['~k_Id_un'].value
-            k_Iphi = self.parameters['~k_Iphi_un'].value
 
         return k_d, k_theta, k_der_d, k_der_theta, k_Id, k_Iphi
 
@@ -218,10 +202,10 @@ class LaneController:
         elif abs(error) < resolution:
             integral = 0
         return integral
-
+    
     def get_direction(self, white_seg_full, yellow_seg_full):
         """
-
+            This code is from A1 and is a bit messy... sorry!
             Args:
                 
         """
