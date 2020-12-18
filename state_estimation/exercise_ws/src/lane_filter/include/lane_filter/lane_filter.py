@@ -47,15 +47,22 @@ class LaneFilterHistogramKF():
             assert p_name in kwargs
             setattr(self, p_name, kwargs[p_name])
 
-        self.mean_0 = [self.mean_d_0, self.mean_phi_0]
-        self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
 
-        self.belief = {'mean': self.mean_0, 'covariance': self.cov_0}
 
         self.encoder_resolution = 0
         self.wheel_radius = 0.0
+<<<<<<< HEAD
         self.wheel_baseline = 0.0
+=======
+        self.baseline = 0.0
+>>>>>>> 8d8da7d386a0a62c1a3c2f7c36cf71a611b3e5a7
         self.initialized = False
+        self.reset()
+
+    def reset(self):
+        self.mean_0 = [self.mean_d_0, self.mean_phi_0]
+        self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
+        self.belief = {'mean': self.mean_0, 'covariance': self.cov_0}
 
         # Initialize SE2 element
         SO2_0 = self.SO2_synthesise(self.mean_phi_0)

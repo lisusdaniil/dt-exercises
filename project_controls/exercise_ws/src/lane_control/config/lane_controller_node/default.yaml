@@ -1,0 +1,5 @@
+#lane_control/lane_controller_node
+
+min_r: 0.01
+max_r: 0.60
+dt_path: 0.05
