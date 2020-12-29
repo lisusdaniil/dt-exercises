@@ -22,7 +22,7 @@ class PurePursuitLaneController:
         """
         self.parameters = parameters
 
-    def update_target_point(self, prev_target, white_seg_full, yellow_seg_full):
+    def update_target_point(self, prev_target, direction, white_seg_full, yellow_seg_full):
         """
 
             Args:
@@ -35,14 +35,14 @@ class PurePursuitLaneController:
 
         if len(white_seg_full) == 0 and len(yellow_seg_full) == 0:
             #print("seg_full empty")
-            return prev_target.x, prev_target.y, "unknown"
+            return prev_target.x, prev_target.y
 
         white_seg_filt = self.filter_segment_list(white_seg_full)
         yellow_seg_filt = self.filter_segment_list(yellow_seg_full)
 
         if len(white_seg_filt) == 0 and len(yellow_seg_filt) == 0:
             #print("seg_filt empty")
-            return prev_target.x, prev_target.y, "unknown"
+            return prev_target.x, prev_target.y
 
         # Sort to maybe help grouping, not really sure if this has impact but why not
         white_seg_filt.sort(key=self.sort_by_y)
@@ -52,7 +52,7 @@ class PurePursuitLaneController:
 
         if len(white_seg_groups) == 0 and len(yellow_seg_groups)==0:
             #print("seg_groups empty")
-            return prev_target.x, prev_target.y, "unknown"
+            return prev_target.x, prev_target.y
 
         # Sort in ascending vertical direction
         for group in white_seg_groups:
@@ -62,7 +62,7 @@ class PurePursuitLaneController:
 
         # Try to predict which white segment group is the right lane and the direction it is heading in
         # Also predict which yellow segment group is the middle yellow line
-        right_white_lane, left_yellow_lane, direction = self.get_lane_groups(white_seg_groups, yellow_seg_groups)
+        right_white_lane, left_yellow_lane = self.get_lane_groups(white_seg_groups, yellow_seg_groups, direction)
 
         white_untrustworthy = False
         # Check if we can trust white
@@ -83,7 +83,7 @@ class PurePursuitLaneController:
                 if (closest_yellow_seg['y'] - closest_white_seg['y']) < 0.05 and closest_white_seg['y'] > 0 :
                     white_untrustworthy = True
                     # Knowing we cant trust white, get new yellow
-                    right_white_lane, left_yellow_lane, direction = self.get_lane_groups([], yellow_seg_groups)
+                    right_white_lane, left_yellow_lane = self.get_lane_groups([], yellow_seg_groups, direction)
 
             if not white_untrustworthy:
                 # Dont trust yellow if it appears on the right of the white line and the white line
@@ -123,17 +123,17 @@ class PurePursuitLaneController:
                     new_target_x = closest_white_seg['x']
                     new_target_y = closest_white_seg['y'] + correction_from_edge
                 elif direction == "left":
-                    new_target_x = closest_white_seg['x'] - correction_from_edge
-                    new_target_y = closest_white_seg['y'] - correction_from_edge/6
+                    new_target_x = closest_white_seg['x'] - correction_from_edge/1.3
+                    new_target_y = closest_white_seg['y'] + correction_from_edge/4
                 elif direction == "right":
-                    new_target_x = closest_white_seg['x'] + correction_from_edge
-                    new_target_y = closest_white_seg['y'] + correction_from_edge/6
+                    new_target_x = closest_white_seg['x'] + correction_from_edge/1.3
+                    new_target_y = closest_white_seg['y'] - correction_from_edge/4
             # If we reach here, neither yellow nor white can be trusted
             else:
                 #print("neither trustworthy")
-                return prev_target.x, prev_target.y, "unknown"
+                return prev_target.x, prev_target.y
 
-        return new_target_x, new_target_y, direction
+        return new_target_x, new_target_y
 
     def sort_by_y(self, e):
         return e['y']
@@ -159,7 +159,7 @@ class PurePursuitLaneController:
                     closest_seg = seg
         return closest_seg
 
-    def get_lane_groups(self, white_seg_groups, yellow_seg_groups):
+    def get_lane_groups(self, white_seg_groups, yellow_seg_groups, direction):
         horizontal_distribution = self.parameters['~horizontal_distribution']
         pos_shift_bc_curve = self.parameters['~pos_shift_bc_curve']
 
@@ -236,150 +236,23 @@ class PurePursuitLaneController:
                 bot_group_y = group
                 bot_group_side_avg_y = side_avg
         
-        # 
         if len(yellow_seg_groups) > 0 and len(white_seg_groups) > 0:
             if max_bot_avg_y > max_top_avg_w and abs(bot_group_side_avg_y - top_group_side_avg_w) < horizontal_distribution:
                 yellow_seg_groups = []
 
-        # Branch based on whether we have yellow lane info
-        direction = "straight"
-        if len(yellow_seg_groups) > 0:
-            #print("here")
-            # Now see whether we have white groups to work with
-            if len(white_seg_groups) > 0:
-                max_y_w = -100000
-                min_y_w = 100000
-                max_y_y = -100000
-                min_y_y = 100000
-                for seg in right_group_w:
-                    if seg['y'] > max_y_w:
-                        max_y_w = seg['y']
-                    if seg['y'] < min_y_w:
-                        min_y_w = seg['y']
+        # Now assign lanes to return
+        if direction == "left":
+            right_white_lane = top_group_w
+            left_yellow_lane = top_group_y
+        # If white lane is below yellow and both lanes are to the right then assume right turn
+        elif direction == "right":
+            right_white_lane = bot_group_w
+            left_yellow_lane = bot_group_y
+        elif direction == "straight":
+            right_white_lane = right_group_w
+            left_yellow_lane = left_group_y
 
-                for seg in left_group_y:
-                    if seg['y'] > max_y_y:
-                        max_y_y = seg['y']
-                    if seg['y'] < min_y_y:
-                        min_y_y = seg['y']
-                possible_turn = False
-                if abs(max_y_w - min_y_w) > horizontal_distribution or abs(max_y_y - min_y_y) > horizontal_distribution:
-                    possible_turn = True
-
-                # Check if lane appears "normal" in the sense of yellow line to left and white to right
-                # If white lane is above yellow and both lanes are to the left then assume left turn    
-                if (
-                    max_top_avg_w > max_top_avg_y 
-                    and top_group_side_avg_y > -pos_shift_bc_curve 
-                    and top_group_side_avg_w > -pos_shift_bc_curve
-                    and possible_turn
-                ):
-                    direction = "left"
-                    right_white_lane = top_group_w
-                    left_yellow_lane = top_group_y
-                # If white lane is below yellow and both lanes are to the right then assume right turn
-                elif(
-                    max_bot_avg_w < max_bot_avg_y 
-                    and bot_group_side_avg_w < pos_shift_bc_curve 
-                    and bot_group_side_avg_y > bot_group_side_avg_w
-                    and possible_turn
-                ):
-                    direction = "right"
-                    right_white_lane = bot_group_w
-                    left_yellow_lane = bot_group_y
-                elif (min_y_y > max_y_w) and (abs(min_left_avg_y - min_right_avg_w) > pos_shift_bc_curve):
-                    direction = "straight"
-                    right_white_lane = right_group_w
-                    left_yellow_lane = left_group_y
-                # Something confusing happening, stick with last confident answer
-                else:
-                    #print("yellow and white path unknown")
-                    direction = "unknown"
-                    right_white_lane = []
-                    left_yellow_lane = []
-
-            # This path is yellow segments only
-            else:
-                # Very difficult to make use of top/bottom yellow lines without white for reference
-                # Going to use just closest left lane
-                # Try to predict direction from horizontal distribution of segments
-                max_y = -100000
-                min_y = 100000
-                for seg in left_group_y:
-                    if seg['y'] > max_y:
-                        max_y = seg['y']
-                    if seg['y'] < min_y:
-                        min_y = seg['y']
-                # If the closest left lane is actually to the left, could be straight or left turn
-                if min_y > -pos_shift_bc_curve and max_y > -pos_shift_bc_curve:
-                    if abs(max_y - min_y) > horizontal_distribution:
-                        direction = "left"
-                        left_yellow_lane = left_group_y
-                    else:
-                        direction = "straight"
-                        left_yellow_lane = left_group_y
-                # If closest left lane not entirely to left, could be a right turn
-                elif max_y > -pos_shift_bc_curve and abs(max_y - min_y) > horizontal_distribution:
-                    direction = "right"
-                    left_yellow_lane = left_group_y
-                else:
-                    #print("yellow path unknown")
-                    direction = "unknown"
-                    left_yellow_lane = []
-        # This path is white segments only
-        else:
-            # If we have a huge group, assume it is the right one since we have best vision of it
-            # This assumption is made bc very little white noise observed... maybe wrong
-            if max_len_w > 2*sec_max_len_w:
-                right_white_lane = max_group
-                
-                # Try to predict direction from horizontal distribution of segments
-                max_y = -100000
-                min_y = 100000
-                for seg in max_group:
-                    if seg['y'] > max_y:
-                        max_y = seg['y']
-                    if seg['y'] < min_y:
-                        min_y = seg['y']
-                if max_y < 0 and min_y < 0:
-                    # If group is to the right and has big distribution, assume right turn
-                    if abs(max_y - min_y) > horizontal_distribution:
-                        direction = "right"
-                    else:
-                        direction = "straight"
-                # If some components are to the left and has big distribution, assume right turn
-                elif max_y > 0 and min_y < 0 and abs(max_y - min_y) > horizontal_distribution:
-                    direction = "left"
-                else:
-                    direction = "straight"
-            elif bot_group_w != top_group_w:
-                max_y = -100000
-                min_y = 100000
-                for seg in right_group_w:
-                    if seg['y'] > max_y:
-                        max_y = seg['y']
-                    if seg['y'] < min_y:
-                        min_y = seg['y']
-                # If we observe a logical right group, trust it
-                if max_y < pos_shift_bc_curve and abs(max_y - min_y) < horizontal_distribution:
-                    right_white_lane = right_group_w
-                    direction = "straight"
-                # If top group is to the left, assume making left turn
-                elif top_group_side_avg_w > 0: 
-                    right_white_lane = top_group_w
-                    direction = "left"
-                # If bot group is to the right, assume making right turn
-                elif bot_group_side_avg_w < 0:
-                    right_white_lane = bot_group_w
-                    direction = "right"
-                else:
-                    right_white_lane = right_group_w
-                    direction = "straight"
-            # If we have no idea, assume the one immediately to our right is the one
-            else:
-                right_white_lane = right_group_w
-                direction = "straight"
-        return right_white_lane, left_yellow_lane, direction
+        return right_white_lane, left_yellow_lane
 
     def group_segs_together(self, filtered_segments):
         seg_group_dist_x = self.parameters['~seg_group_dist_x'] 

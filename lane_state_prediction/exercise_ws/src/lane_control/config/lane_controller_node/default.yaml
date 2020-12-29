@@ -1,0 +1,56 @@
+#lane_control/lane_controller_node
+
+## Settings for real
+#look_ahead_dist: 0.35            # [m] distance away from robot for pure pursuit to place look-ahead point
+#max_lookahead: 0.40              # [m] maximum distance to keep track of segments
+#min_lookahead: 0.2              # [m] minimum distance to keep track of segments 
+#seg_collapse_dist: 0.02          # [m] radius of circle to which to collapse segments to a single point
+#seg_group_dist_x: 0.20           # [m] vertical distance where segments are assumed to belong to the same group
+#seg_group_dist_y: 0.20           # [m] horizontal distance where segments are assumed to belong to the same group
+#correction_from_edge: 0.12       # [m] correction for target point to be in center of lane
+#horizontal_distribution: 0.25    # [m] how much should points be distributed in a group to deem the lane turning
+#max_yellow_white_dist: 0.50      # [m] maximum distance between yellow and white segment to calculate target between them
+#pos_shift_bc_curve: 0.05         # [m] Allow for curvature of road to move horizontal averages to the other side of the car
+                                 #     For example, if white lane curves to left, its avg may be to the left of the car
+                                 #     but we still want to consider it
+
+#K: 0.18                          # Controller gain
+#v_nom: 0.6                       # [m/s] nominal speed
+#v_min: 0.4                      # [m/s] minimum speed
+#alpha_K: 3.0                     # Slowdown coefficient for alpha
+#sample_rate: 0.01                # Sample rate for new commands
+
+# Lane state prediction settings
+#max_lookahead_GP: 0.35
+#min_lookahead_GP: 0.05
+#train_filename_GP: "temp.json"
+#predict_lane_state: True
+#GP_model_file: "trained_model.sav"
+
+
+# Settings for sim
+look_ahead_dist: 0.35            # [m] distance away from robot for pure pursuit to place look-ahead point 
+seg_collapse_dist: 0.02         # [m] radius of circle to which to collapse segments to a single point
+max_lookahead: 0.4              # [m] maximum distance to keep track of segments
+min_lookahead: 0.1              # [m] minimum distance to keep track of segments 
+seg_group_dist_x: 0.20          # [m] vertical distance where segments are assumed to belong to the same group
+seg_group_dist_y: 0.20          # [m] horizontal distance where segments are assumed to belong to the same group
+correction_from_edge: 0.17      # [m] correction for target point to be in center of lane
+horizontal_distribution: 0.25   # [m] how much should points be distributed in a group to deem the lane turning
+max_yellow_white_dist: 0.50     # [m] maximum distance between yellow and white segment to calculate target between them
+pos_shift_bc_curve: 0.05        # [m] Allow for curvature of road to move horizontal averages to the other side of the car
+                                #     For example, if white lane curves to left, its avg may be to the left of the car
+                                #     but we still want to consider it
+
+K: 0.4                          # Controller gain
+v_nom: 0.7                     # [m/s] nominal speed
+v_min: 0.25                      # [m/s] minimum speed
+alpha_K: 4.0                    # Slowdown coefficient for alpha
+sample_rate: 0.05                # Sample rate for new commands
+
+# Lane state prediction settings
+max_lookahead_GP: 0.35
+min_lookahead_GP: 0.05
+train_filename_GP: "temp.json"
+predict_lane_state: True
+GP_model_file: "trained_model.sav"

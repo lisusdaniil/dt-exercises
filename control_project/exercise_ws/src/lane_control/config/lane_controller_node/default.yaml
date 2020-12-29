@@ -1,0 +1,12 @@
+#lane_control/lane_controller_node
+
+min_r: 0.01
+max_r: 0.60
+dt_path: 0.2
+max_dist_fact: 1.2
+min_dist: 0.2
+
+
+# Define input gains
+k_v: 2.0
+k_omega: 500.0
